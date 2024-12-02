@@ -1,15 +1,23 @@
 <template>
-  <img alt="Vue logo" src="./assets/logo.png">
-  <HelloWorld msg="Welcome to Your Vue.js App"/>
+  <div id="app">
+    <ThermostatDashboard />
+  </div>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
+// For Debugging
+import { devtools } from '@vue/devtools'
+if (process.env.NODE_ENV === 'development')
+  devtools.connect("http://127.0.0.1:8098")
+
+
+import ThermostatDashboard from "@/components/ThermostatDashboard.vue";
+
 
 export default {
   name: 'App',
   components: {
-    HelloWorld
+    ThermostatDashboard,
   }
 }
 </script>
