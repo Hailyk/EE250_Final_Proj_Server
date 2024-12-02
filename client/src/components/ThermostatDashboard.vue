@@ -42,6 +42,7 @@ export default {
       this.updateTemperature(this.indoor.targetTemperature);
     },
     async fetchTemperature() {
+      console.log('Fetching temperature data');
       try{
         const response = await fetch('/api/temperature');
         const data = await response.json();
@@ -53,6 +54,7 @@ export default {
       }
     },
     async updateTemperature(temperature) {
+      console.log('Updating temperature to server');
       try {
         await fetch('/api/temperature', {
           method: 'POST',
@@ -71,6 +73,7 @@ export default {
   },
   mounted() {
     this.fetchTemperature();
+    setInterval(this.fetchTemperature, 5000);
   }
 };
 </script>

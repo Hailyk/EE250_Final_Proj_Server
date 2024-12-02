@@ -1,0 +1,19 @@
+{
+  "name": "indoor-temperature-server",
+  "version": "0.1.0",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js",
+    "prestart": "cd ../client && npm run build && cd ../server",
+    "quickstart": "node server.js"
+  },
+  "author": "HailyK",
+  "license": "MIT",
+  "description": "",
+  "dependencies": {
+    "aedes": "^0.51.3",
+    "express": "^4.21.1",
+    "request": "^2.88.2"
+  }
+}
