@@ -33,14 +33,17 @@ export default {
     };
   },
   methods: {
+    // Increase the target temperature
     increaseTemperature() {
       this.indoor.targetTemperature++;
       this.updateTemperature(this.indoor.targetTemperature);
     },
+    // Decrease the target temperature
     decreaseTemperature() {
       this.indoor.targetTemperature--;
       this.updateTemperature(this.indoor.targetTemperature);
     },
+    // Fetch the temperature data from the server
     async fetchTemperature() {
       console.log('Fetching temperature data');
       try{
@@ -53,6 +56,7 @@ export default {
         console.error('Error fetching data from server');
       }
     },
+    // Update the target temperature to the server
     async updateTemperature(temperature) {
       console.log('Updating temperature to server');
       try {
@@ -72,7 +76,10 @@ export default {
     }
   },
   mounted() {
+    // fetch the temperature on load on web page
     this.fetchTemperature();
+
+    // refresh the temperature every 5 seconds
     setInterval(this.fetchTemperature, 5000);
   }
 };

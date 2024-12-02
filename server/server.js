@@ -1,5 +1,4 @@
 const tls = require('tls');
-const net = require('net');
 const express = require('express');
 const path = require('path')
 const aedes = require('aedes')();
@@ -22,10 +21,13 @@ const credentials = {
     cert: fs.readFileSync(path.join(__dirname, 'certificates', 'server.cert'))
 };
 
+//creates the encrypted MQTT server
 const MqttServer = tls.createServer(credentials, aedes.handle);
 
+// middleware used for parsing the JSON data
 WebApp.use(express.json());
 
+// stores the data
 let thermostatData = {
     outdoor: {
         currentTemperature: 25,
@@ -59,8 +61,12 @@ WebApp.get('/api/temperature', (req, res) => {
 // handle the POST request to update the target temperature
 WebApp.post('/api/temperature', (req, res) => {
     thermostatData.indoor.targetTemperature = req.body.targetTemperature;
+
+    // builds the payload
     let payload = {targetTemperature: thermostatData.indoor.targetTemperature};
     const sharedBuffer = Buffer.from(JSON.stringify(payload));
+
+    // publish the message to the MQTT server
     aedes.publish({ topic: 'thermostat/indoor/targetTemperature', payload: sharedBuffer }, (err) => {
         if (err) {
             console.log(err);
@@ -91,28 +97,36 @@ WebApp.use(express.static(path.join(__dirname, '../client/dist/')));
 
 // handle the MQTT publish message
 aedes.on('publish', (packet, client) => {
+    // handle the case where the client is not defined
     if(client == null || client.id == null){
         client = { id: 'unknown' };
     }
+
+    // handles the push of data to the target temperature
     if (packet.topic === 'thermostat/indoor/targetTemperature') {
         thermostatData.indoor.targetTemperature = parseInt(JSON.parse(decoder.decode(packet.payload)).targetTemperature);
         console.log(`Updating target temperature to ${thermostatData.indoor.targetTemperature}`);
 
     }
+    // handles the push of data to the current temperature
     else if(packet.topic === 'thermostat/indoor/currentTemperature'){
         thermostatData.indoor.currentTemperature = parseInt(JSON.parse(decoder.decode(packet.payload.currentTemperature)));
         console.log(`Updating current temperature to ${thermostatData.indoor.subs.currentTemperature}`);
     }
+    // handles the push of data to the current humidity
     else if(packet.topic === 'thermostat/indoor/currentHumidity'){
         thermostatData.indoor.currentHumidity = parseInt(JSON.parse(decoder.decode(packet.payload.subs.currentHumidity)));
         console.log(`Updating current humidity to ${thermostatData.indoor.currentHumidity}`);
     }
+    // handles mqtt heartbeat packet
     else if(/\/heartbeat$/.test(packet.topic)){
         console.log(`Heartbeat packet ${packet.topic}`);
     }
+    // logs when a new client connects
     else if(/\$SYS\/[a-f0-9-]+\/(new\/clients)/.test(packet.topic)){
         console.log(`New client connected`);
     }
+    // catches all other messages
     else {
         console.log(`MQTT client ${client.id} published message: ${packet.payload.toString()} to topic: ${packet.topic}`);
     }
@@ -139,6 +153,8 @@ aedes.on('clientDisconnect', (client) => {
 
 // get outdoor temperature and humidity
 setInterval(() => {
+
+    // sends a request to the weather API
     request(`http://api.weatherapi.com/v1/current.json?key=${apiKey}&q=\"los angeles\"`, (error, response, body) => {
         if (error) {
             console.log(error);
@@ -150,8 +166,6 @@ setInterval(() => {
         }
     });
     console.log(`Publishing outdoor temperature and humidity: ${thermostatData.outdoor.currentTemperature}, ${thermostatData.outdoor.currentHumidity}`);
-    aedes.publish({ topic: 'thermostat/outdoor/currentTemperature', payload: thermostatData.outdoor.currentTemperature.toString() });
-    aedes.publish({ topic: 'thermostat/outdoor/currentHumidity', payload: thermostatData.outdoor.currentHumidity.toString() });
 }, 6000000);
 
 // ------------------- end of MQTT server -------------------
@@ -167,6 +181,7 @@ MqttServer.listen(mqttPort, () => {
         throw new Error('Please provide the API key for freeWeatherAPI');
     }
 
+    // sends a request to the weather API on start of server
     request("https://api.weatherapi.com/v1/current.json?key="+apiKey+"&q=los angeles&aqi=yes", (error, response, body) => {
         if (error) {
             console.log(error);
