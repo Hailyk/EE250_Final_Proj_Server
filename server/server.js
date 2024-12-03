@@ -104,18 +104,36 @@ aedes.on('publish', (packet, client) => {
 
     // handles the push of data to the target temperature
     if (packet.topic === 'thermostat/indoor/targetTemperature') {
-        thermostatData.indoor.targetTemperature = parseInt(JSON.parse(decoder.decode(packet.payload)).targetTemperature);
+        let decodedPayload = decoder.decode(packet.payload);
+        thermostatData.indoor.targetTemperature = parseInt(JSON.parse(decodedPayload).targetTemperature);
         console.log(`Updating target temperature to ${thermostatData.indoor.targetTemperature}`);
 
     }
+    else if(packet.topic === 'thermostat/indoor/getTargetTemperature'){
+        // builds the payload
+        let payload = {targetTemperature: thermostatData.indoor.targetTemperature};
+        const sharedBuffer = Buffer.from(JSON.stringify(payload));
+
+        // publish the message
+        aedes.publish({ topic: 'thermostat/indoor/targetTemperature', payload: sharedBuffer }, (err) => {
+            if (err) {
+                console.log(err);
+            }
+            else {
+                console.log(`Updating target temperature to ${thermostatData.indoor.targetTemperature}`);
+            }
+        });
+    }
     // handles the push of data to the current temperature
     else if(packet.topic === 'thermostat/indoor/currentTemperature'){
-        thermostatData.indoor.currentTemperature = parseInt(JSON.parse(decoder.decode(packet.payload.currentTemperature)));
-        console.log(`Updating current temperature to ${thermostatData.indoor.subs.currentTemperature}`);
+        let decodedPayload = decoder.decode(packet.payload);
+        thermostatData.indoor.currentTemperature = parseInt(JSON.parse(decodedPayload).currentTemperature);
+        console.log(`Updating current temperature to ${thermostatData.indoor.currentTemperature}`);
     }
     // handles the push of data to the current humidity
     else if(packet.topic === 'thermostat/indoor/currentHumidity'){
-        thermostatData.indoor.currentHumidity = parseInt(JSON.parse(decoder.decode(packet.payload.subs.currentHumidity)));
+        let decodedPayload = decoder.decode(packet.payload);
+        thermostatData.indoor.currentHumidity = parseInt(JSON.parse(decodedPayload).currentHumidity);
         console.log(`Updating current humidity to ${thermostatData.indoor.currentHumidity}`);
     }
     // handles mqtt heartbeat packet
@@ -188,7 +206,6 @@ MqttServer.listen(mqttPort, () => {
         }
         else {
             weatherData = JSON.parse(body);
-            console.log(weatherData);
             console.log("current temperature: " + weatherData.current.temp_c);
             console.log("current humidity: " + weatherData.current.humidity);
             thermostatData.outdoor.currentTemperature = weatherData.current.temp_c;
