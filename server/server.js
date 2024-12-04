@@ -2,7 +2,6 @@ const tls = require('tls');
 const express = require('express');
 const path = require('path')
 const aedes = require('aedes')();
-const request = require('request');
 const https = require('https');
 const fs = require('fs');
 
@@ -84,6 +83,7 @@ WebApp.get('/index.html', (req,res)=>{
     res.sendFile(path.join(__dirname, '../client/dist/', 'index.html'));
 });
 
+// handle the get request to the root url same as index.html
 WebApp.get('/', (req,res)=>{
     res.sendFile(path.join(__dirname, '../client/dist/', 'index.html'));
 });
