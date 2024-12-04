@@ -11,6 +11,7 @@
 1. `install node.js`
 2. `cd server`
 3. `npm install`
+4. set the environmental variable `FREE_WEATHER_API_KEY` with api key from [WeatherAPI](https://www.weatherapi.com/)
 4. `npm run start`
 
    running the npm start script compiles the front end at the same time. To run the server without compiling the front end, use `npm run quickstart`
